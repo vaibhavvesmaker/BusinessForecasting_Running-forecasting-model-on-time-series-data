@@ -1,0 +1,528 @@
+---
+title: "vv337_BF_HW4"
+output: html_document
+date: "2023-10-08"
+---
+**The redo work is displayed from chunk lines 264 onwards**
+
+```{r}
+# Business Forecasting HW4
+# Name - Vaibhav Rajesh Vesmaker
+# Email - vaibhav.vesmaker@rutgers.edu
+```
+
+
+```{r}
+library(fpp)
+library(fpp2)
+```
+
+
+```{r}
+library(forecast)
+library(TTR)  # because we are doing average, we use this library
+```
+
+
+```{r}
+data(boston) # picking up the boston dataset
+boston
+```
+
+
+```{r}
+class(boston) # [1] 1967    1
+```
+
+
+
+```{r}
+start(boston) # this tells you that the data series is in a time series format
+#This is the start of the time series
+```
+
+
+
+```{r}
+end(boston) # [1] 1969   11
+#This is the end of the time series
+```
+
+```{r}
+frequency(boston) # The cycle of this time series is 12 months in a year
+```
+
+```{r}
+summary(boston)
+```
+
+
+```{r}
+dim(boston) # [1] 35  2   i.e 35 rows and 2 columns
+```
+
+
+
+```{r}
+colnames(boston)  # [1] "nyase" "bse"
+```
+
+
+
+
+```{r}
+boxplot(boston~cycle(boston)) # Box plot across months
+```
+
+
+
+```{r}
+plot(boston) # there's no trend (to check this we can simply plot a point at the starting point and the ending point.. if there's a big difference between them then there is a trend otherwise there's no trend).. we can see that there is seasonality..
+```
+
+
+```{r}
+nrow(boston) # 35
+```
+
+
+```{r}
+ncol(boston) # 2
+```
+
+
+```{r}
+attributes(boston)   # it's showing that it is a time series with a periodicity of 12.
+```
+
+
+```{r}
+# Autocorrelation represents the degree of similarity between a given time series and a lagged version of itself over successive time intervals.
+# Autocorrelation measures the relationship between a variable's current value and its past values.
+# An autocorrelation of +1 represents a perfect positive correlation, while an autocorrelation of negative 1 represents a perfect negative correlation.
+# Autocorrelation can also be referred to as lagged correlation or serial correlation, as it measures the relationship between a variable's current value and its past values.
+Acf(boston)
+```
+
+
+
+```{r}
+Acf(boston[,"nyase"])
+```
+
+
+
+```{r}
+# Notice how the coefficient is high at lag 1, 5,14,15. In terms of the month if I have to say then, high positive correlations for January and May, whereas February and March have negative correlations.
+# We will focus on the points that lie beyond the blue region as they signify strong statistical significance.
+Acf(boston[,"bse"])
+
+
+```
+
+```{r}
+# Again, we can infer same things from this plot too and focus on the points that lie beyond the blue region as they signify strong statistical significance.
+
+
+# The autocorrelation plot for Monthly dollar volume of sales on Boston stock exchange and combined New York and American stock exchange. January 1967 – November 1969. that some values are not statistically significant and some of them are significant. This indicates that the values are not highly correlated, as we can see from the graph plot.
+
+# In our ACF plot, each bar (line) represents the size and direction of the correlation. Bars that extend across the blue line are statistically significant.
+
+# From the ACF, we can assess the randomness and stationarity of a time series. We can also determine whether trends and seasonal patterns are present.
+# From our output, we can see that there is randomness and trends are not present.
+```
+
+
+```{r}
+# Now, let us find the autocorrelation values for both the columns from our ACF plot 
+Autocorrelation_bse <- acf(boston[,"bse"],plot=FALSE)
+Autocorrelation_bse
+```
+
+
+```{r}
+Autocorrelation_nyase <- acf(boston[,"nyase"],plot=FALSE)
+Autocorrelation_nyase
+```
+
+
+```{r}
+# I took the whole data because there are only 35 rows and 2 columns in the dataset. 
+
+# Residuals
+
+df.ts_bse <- ts((boston[,"bse"]), frequency = 12, start = c(1967,1))
+df.ts_bse
+```
+
+
+```{r}
+plot.ts(df.ts_bse,main = "Timeseries", col = "blue")
+```
+
+
+
+```{r}
+#take Mean of all available history
+mean_forecast <- meanf(df.ts_bse,5)   
+# give the forecast for the next 5 months
+plot(mean_forecast)
+```
+
+
+
+
+```{r}
+tmp1 <- HoltWinters(df.ts_bse)
+tmp_f <- forecast(tmp1)
+plot(hist(tmp_f$residuals))
+```
+
+
+
+```{r}
+Acf(tmp_f$residuals)
+```
+
+
+
+```{r}
+accuracy(tmp_f)
+```
+
+
+
+```{r}
+# Naive 
+naive_forecast <- naive(df.ts_bse,5)  
+plot(naive_forecast)  # naive takes the last known value and just extends that
+
+
+```
+
+
+
+
+
+
+
+
+
+
+<span style="font-size: 30pt;">**Assignment Redo work**</span>
+
+```{r}
+#plotting different model forecast charts on the same time series in one chart
+# there are different versions of naive... random walk,seasonal naive, etc... just explore more about this
+
+# Random Walk
+rwf_forecast <- rwf(df.ts_bse,5)
+rwf_forecast <- rwf(df.ts_bse,5, drift=TRUE)
+
+
+# Seasonal Naive
+snaive_forecast <- snaive(df.ts_bse,5)
+
+
+# Moving Averages
+MA5_forecast <- ma(df.ts_bse,order=5)
+MA9_forecast <- ma(df.ts_bse,order=9)
+
+# plot all in a single chart
+plot(mean_forecast)
+lines(naive_forecast$mean,col="red")
+```
+
+```{r}
+
+
+
+```
+
+
+```{r}
+plot(rwf_forecast)
+plot(naive_forecast)
+plot(snaive_forecast)
+plot(MA5_forecast)
+plot(MA9_forecast)
+lines(rwf_forecast$mean,col="green")
+lines(snaive_forecast$mean,col="black")
+lines(MA5_forecast,col="Pink")
+lines(MA9_forecast,col="Blue")
+```
+
+
+```{r}
+plot(snaive_forecast)
+lines(snaive_forecast$mean,col="black")
+```
+
+
+
+```{r}
+plot(MA5_forecast)
+lines(MA5_forecast,col="Pink")
+```
+
+
+
+```{r}
+plot(MA9_forecast)
+lines(MA9_forecast,col="Blue")
+```
+\n
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+plot(rwf_forecast)
+plot(naive_forecast)
+plot(snaive_forecast)
+plot(MA5_forecast)
+plot(MA9_forecast)
+lines(rwf_forecast$mean,col="green")
+lines(snaive_forecast$mean,col="black")
+lines(MA5_forecast,col="Pink")
+lines(MA9_forecast,col="Blue")
+
+# Set up a 2x2 grid for plots (2 rows, 2 columns)
+par(mfrow = c(2, 2))
+
+# Create the individual plots
+plot(rwf_forecast, main = "Random Walk Forecast", col = "green")
+plot(naive_forecast, main = "Naive Forecast", col = "red")
+plot(snaive_forecast, main = "Seasonal Naive Forecast", col = "black")
+plot(MA5_forecast, main = "Moving Average (Order 5) Forecast", col = "pink")
+
+# Set up a 2x2 grid for plots (2 rows, 2 columns)
+par(mfrow = c(2, 2))
+
+# Create the individual plots
+plot(rwf_forecast, main = "Random Walk Forecast", col = "green")
+plot(naive_forecast, main = "Naive Forecast", col = "red")
+plot(snaive_forecast, main = "Seasonal Naive Forecast", col = "black")
+plot(MA5_forecast, main = "Moving Average (Order 5) Forecast", col = "pink")
+
+# Reset the layout to 1x1 (back to a single plot)
+par(mfrow = c(1, 1))
+
+
+
+# Create an empty plot for the first forecast
+plot(rwf_forecast, main = "Forecast Comparison", col = "green")
+
+# Add the other forecast lines to the same plot
+lines(naive_forecast$mean, col = "red", lty = 2, lwd = 2)
+lines(snaive_forecast$mean, col = "black", lty = 3, lwd = 2)
+lines(MA5_forecast, col = "pink", lty = 4, lwd = 2)
+lines(MA9_forecast, col = "blue", lty = 5, lwd = 2)
+
+# Add a legend
+legend("topleft", legend = c("Random Walk", "Naive", "Seasonal Naive", "Moving Average","Moving Average"),
+       col = c("green", "red", "black", "pink","blue"), lty = c(1, 2, 3, 4,5), lwd = 2)
+
+# This will create a single plot with all forecast lines overlaid.
+
+
+```
+**Over the above graphs shown i have appended many different methods to show multiple plots in  one single chart , tried to explore as much as i could and displayed the trend for the same**
+
+```{r}
+# what other attributes are there?
+attributes(naive_forecast)
+```
+
+
+
+```{r}
+# we can also print the values by doing this -> attributes(naive_forecast$fitted)
+
+# Decomposition
+
+ets_forecast <- ets(df.ts_bse)
+plot(ets_forecast)
+```
+
+
+
+
+```{r}
+attributes(ets_forecast)
+```
+
+
+```{r}
+ets_forecast$mse  # [1] 959.4138
+```
+
+
+```{r}
+library(forecast)
+library(ggplot2)
+# Decomposition of additive time series...
+ets_forecast <- ets(df.ts_bse)
+df_decompose_bse <- decompose(df.ts_bse, type = "additive")
+#generate ets forecast
+forecast_ets <- forecast(ets_forecast, h = 5)
+#creating a plot
+plot(df_decompose_bse)
+# Add ETS forecasts to the plot
+lines(ets_forecast$df.ts_bse, col = "red", lty = 2)
+#lines(naive_forecast$mean,col="red")
+legend("topleft", legend = "ETS Forecast", col = "red", lty = 2)
+```
+
+
+```{r}
+# HoltWinters
+
+# Holt-Winters forecasting is a way to model and predict the behavior of a sequence of values over time—a time series.
+HW_forecast <- HoltWinters(df.ts_bse)
+plot(HW_forecast)
+# Generate forecasts
+forecast_hw <- forecast(HW_forecast, h = 10)
+# Calculate accuracy measures
+accuracy(forecast_hw)
+
+# Change 'h' to the desired forecast horizon
+
+# black line is the actual data and red line is the HoltWinters.. 
+# We can see that the data fits for sometime and then it deviates little bit from the actual data...
+```
+```{r}
+
+```
+
+
+```{r}
+SSE_Simple <- HoltWinters(df.ts_bse,beta=FALSE,gamma=FALSE)
+attributes(SSE_Simple)
+```
+
+
+```{r}
+plot(SSE_Simple)
+```
+
+
+```{r}
+SSE_Simple$SSE # [1] 33523.09
+```
+
+
+```{r}
+head(SSE_Simple$fitted)
+```
+
+
+```{r}
+#Forecast
+forecast_ets_1 <- forecast.ets(ets_forecast, h=5)
+plot(forecast_ets_1)
+forecast_ets_2 <- forecast(ets_forecast, h=5)
+plot(forecast_ets_2)
+```
+
+```{r}
+accuracy(forecast_ets_1)
+
+```
+**Comparing the provided accuracy results with the new accuracy results:
+
+For the first set of accuracy results:
+- ME: -6.82411
+- RMSE: 37.4424
+- MAE: 27.12859
+- MPE: -6.724361
+- MAPE: 21.27763
+- MASE: 0.3433243
+- ACF1: -0.03517022
+
+For the new accuracy results:
+- ME: 1.326064
+- RMSE: 30.97441
+- MAE: 23.29774
+- MPE: -1.444534
+- MAPE: 19.24782
+- MASE: 0.2948432
+- ACF1: 0.04207641
+
+Comparing the two sets of accuracy results:
+
+1. **ME (Mean Error)**: The first set has a negative ME, indicating a negative bias in the forecasts, while the new set has a positive ME, indicating a positive bias. Both models have their respective bias.
+
+2. **RMSE (Root Mean Squared Error)**: The first set has a smaller RMSE (30.97441), which indicates better accuracy in terms of magnitude of errors compared to the second set (37.4424).
+
+3. **MAE (Mean Absolute Error)**: The first set has a smaller MAE (23.29774), indicating smaller absolute errors compared to the second set (27.12859).
+
+4. **MPE (Mean Percentage Error)**: Both sets have negative MPE values, indicating a bias towards underestimation. The first set has a slightly smaller absolute MPE.
+
+5. **MAPE (Mean Absolute Percentage Error)**: The first set has a smaller MAPE (19.24782), indicating smaller average percentage errors compared to the second set (21.27763).
+
+6. **MASE (Mean Absolute Scaled Error)**: The first set has a smaller MASE (0.2948432), indicating better performance relative to a naïve forecast compared to the second set (0.3433243).
+
+7. **ACF1 (Autocorrelation of Residuals)**: The first set has a positive ACF1 (0.04207641), indicating some positive autocorrelation in the residuals, while the second set has a negative ACF1 (-0.03517022), indicating negative autocorrelation. Neither ACF1 value is close to 1 or -1, so there may still be some room for improvement in terms of modeling residuals autocorrelation.
+
+In summary, based on these accuracy measures, the first set of results generally shows better performance in terms of RMSE, MAE, MAPE, MASE, and ACF1, although it has a positive bias (ME). The choice of the better model depends on the specific goals and requirements of the forecasting task, as well as the importance of each accuracy metric in your decision-making process. **
+
+
+
+Certainly! Here's a model output based on the provided accuracy measures for the time series forecasting model:
+
+---
+
+**Model Output Summary**
+
+- **Model Name**: Time Series Forecasting Model
+- **Dataset Used**: Boston Dataset (Monthly Dollar Volume of Sales on Boston Stock Exchange and Combined New York and American Stock Exchange)
+- **Time Period**: January 1967 – November 1969
+
+**Model Performance Metrics**
+
+1. **ME (Mean Error)**: -6.82411
+   - Interpretation: The model tends to underestimate the values on average.
+
+2. **RMSE (Root Mean Squared Error)**: 37.4424
+   - Interpretation: The average magnitude of forecast errors is 37.4424, indicating the typical deviation of forecasts from actual values.
+
+3. **MAE (Mean Absolute Error)**: 27.12859
+   - Interpretation: The average absolute deviation of forecasts from actual values is 27.12859.
+
+4. **MPE (Mean Percentage Error)**: -6.724361
+   - Interpretation: The model has an average percentage error of -6.724361, suggesting an overall underestimation.
+
+5. **MAPE (Mean Absolute Percentage Error)**: 21.27763
+   - Interpretation: The average absolute percentage deviation of forecasts from actual values is 21.27763.
+
+6. **MASE (Mean Absolute Scaled Error)**: 0.3433243
+   - Interpretation: The model's performance is 0.3433243 times as accurate as a simple benchmark (naïve forecast).
+
+7. **ACF1 (Autocorrelation of Residuals)**: -0.03517022
+   - Interpretation: The autocorrelation of residuals shows a slight negative correlation, suggesting some irregularities in the model's errors.
+
+**Model Evaluation and Interpretation**
+
+- The model exhibits a negative bias (ME) and a tendency to underestimate values on average.
+- The RMSE and MAE values indicate a moderate level of forecast accuracy, with errors of approximately 37.44 and 27.13, respectively.
+- The MPE and MAPE values indicate an overall underestimation, with an average percentage error of -6.72% and an average absolute percentage error of 21.28%.
+- The MASE suggests that the model is approximately 0.34 times as accurate as a simple benchmark (naïve forecast).
+- The ACF1 value indicates some negative autocorrelation in the residuals, suggesting the need for further model refinement.
+
+Please note that the choice of the "best" model depends on the specific forecasting goals and requirements. While this model provides insights into the dataset, further analysis and model refinement may be necessary to improve forecast accuracy and reduce bias.
+
+---
+
+This model output summarizes the performance of the time series forecasting model based on the provided accuracy measures and offers interpretations of each metric's significance.
+```{r}
+
+```
+
