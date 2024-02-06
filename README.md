@@ -1,4 +1,4 @@
-# BusinessForecastingHW4Running-forecasting-model-on-time-series-data
+# BusinessForecasting_Running-forecasting-model-on-time-series-data
 Running forecasting model on  time series data
 
 **Model Output Summary**
